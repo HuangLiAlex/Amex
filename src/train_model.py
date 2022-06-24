@@ -7,19 +7,20 @@ import pandas as pd
 from sklearn.metrics import average_precision_score, roc_auc_score
 from torch.optim.lr_scheduler import MultiStepLR
 
+from src.Transformer import TransformerModel
 from src.early_stopper import early_stopper
 from src.hyper_param import *
 from src.metric import amex_metric
 from src.GRU import GRU
 
 
-def train_model():
+def train_model_GRU():
     # SAVE TRUE AND OOF
     device = params['device']
     true = np.array([])
     oof = np.array([])
 
-    for fold in range(5):
+    for fold in range(5):   #apply 5 fold test
 
         # INDICES OF TRAIN AND VALID FOLDS
         valid_idx = [2 * fold + 1, 2 * fold + 2]
@@ -194,3 +195,37 @@ def train_model():
     # PRINT OVERALL RESULTS
     print('#' * 25)
     print(f'Overall CV =', amex_metric(true, oof))
+
+
+def train_model_transformer():
+    device = params['device']
+    DUMMY_TEXT = "test" # hl todo - to replace
+    ntokens = len(DUMMY_TEXT.vocab.stoi) # the size of vocabulary
+    emsize = 20 # embedding dimension
+    nhid = 1 # the dimension of the feedforward network model in nn.TransformerEncoder
+    nlayers = 1 # the number of nn.TransformerEncoderLayer in nn.TransformerEncoder
+    nhead = 1 # the number of heads in the multiheadattention models
+    dropout = 0.2 # the dropout value
+    model = TransformerModel(ntokens, emsize, nhead, nhid, nlayers, dropout).to(device)
+
+    print(model)
+    train_iter = 10
+
+    for i in train_iter:
+        print(f'Model input dimensions: {i.text.shape}')
+        break
+    print(f'Model output dimensions: {model(i.text).shape}')
+
+    criterion = nn.CrossEntropyLoss()
+    optimizer = torch.optim.SGD(model.parameters(), lr=0.1)
+    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 1.0, gamma=0.95)
+    model.train()
+    for j in range(100):
+        for i in train_iter:
+            optimizer.zero_grad()
+            output = model(i.text)
+            loss = criterion(output.view(-1, output.shape[-1]), i.target.view(-1).cuda())
+            loss.backward()
+            torch.nn.utils.clip_grad_norm_(model.parameters(), 0.5)
+            optimizer.step()
+            print(f'Loss: {loss.item()}')

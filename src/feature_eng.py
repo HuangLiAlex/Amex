@@ -7,19 +7,7 @@ def feature_engineer(train, PAD_CUSTOMER_TO_13_ROWS=True, targets=None):
     # from 64 bytes to 8 bytes, and 10 bytes to 3 bytes respectively
     # train['customer_ID'] = train['customer_ID'].str[-16:].str.hex_to_int().astype('int64')
     # pandas way
-    train['customer_ID'] = train['customer_ID'].apply(lambda x: int(x[-16:], 16)).astype('int64')
-
-    # check data
-    print("type: ", type(train))
-    print("shape: ", train.shape)
-    print("head(5): \n", train.head(5))
-    print("tail(5): \n", train.tail(5))
-    # print("info(): \n", train.info())
-    train.info()
-    print("describe(): \n", train.describe())
-    print("isnull(): \n", train.isnull())
-    print("isnull().sum(): \n", train.isnull().sum())
-    print("isnull().any(): \n", train.isnull().any())
+    # train['customer_ID'] = train['customer_ID'].apply(lambda x: int(x[-16:], 16)).astype('int64')
 
     # process datetime
     train.S_2 = pd.to_datetime(train.S_2).astype(np.int64)/10**11
@@ -85,5 +73,17 @@ def feature_engineer(train, PAD_CUSTOMER_TO_13_ROWS=True, targets=None):
     COLS = list(train.columns[1:])
     COLS = ['customer_ID'] + CATS + [c for c in COLS if c not in CATS]
     train = train[COLS]
-    print(train)
+
+    # check data
+    # print("type: ", type(train))
+    # print("shape: ", train.shape)
+    # print("head(5): \n", train.head(5))
+    # print("tail(5): \n", train.tail(5))
+    train.info()
+    # print("describe(): \n", train.describe())
+    # print("isnull(): \n", train.isnull())
+    # print("isnull().sum(): \n", train.isnull().sum())
+    # print("isnull().any(): \n", train.isnull().any())
+    # print(train)
+
     return train

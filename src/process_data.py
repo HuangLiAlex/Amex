@@ -2,7 +2,7 @@
 import os, gc
 import numpy as np, pandas as pd  # CPU LIBRARIES
 from src.feature_eng import feature_engineer
-from src.hyper_param import PATH_TO_CUSTOMER_HASHES, PATH_TO_DATA, TRAIN_LABELS_CSV, TRAIN_DATA_CSV, TEST_DATA_CSV
+from src.hyper_param import PATH_TO_CUSTOMER_HASHES, PATH_TO_DATA, TRAIN_LABELS_CSV, TRAIN_DATA_PATH, TEST_DATA_PATH
 
 
 def read_train_data():
@@ -14,10 +14,17 @@ def read_train_data():
     print(f'There are {targets.shape[0]} train targets')
 
     # GET TRAIN COLUMN NAMES
-    if 'feather' in TRAIN_DATA_CSV:
-        train = pd.read_feather(TRAIN_DATA_CSV)
+    if 'feather' in TRAIN_DATA_PATH:
+        train = pd.read_feather(TRAIN_DATA_PATH)
+    elif 'parquet' in TRAIN_DATA_PATH:
+        train = pd.read_parquet(TRAIN_DATA_PATH)
     else:
-        train = pd.read_csv(TRAIN_DATA_CSV, nrows=1)
+        train = pd.read_csv(TRAIN_DATA_PATH, nrows=1)
+
+    train_ID = pd.DataFrame()
+    train['customer_ID'] = train['customer_ID'].apply(lambda x: int(x[-16:], 16)).astype('int64')
+    train_ID['customer_ID'] = train['customer_ID']
+    # train_ID.info()
 
     T_COLS = train.columns
     print(f'There are {len(T_COLS)} train dataframe columns')
@@ -28,28 +35,38 @@ def read_train_data():
     customers = train_customers.drop_duplicates().sort_index().values.flatten()
     print(f'There are {len(customers)} unique customers in train.')
 
-    return train, targets, customers, T_COLS
+    return train, train_ID, targets, customers, T_COLS
 
 
-def process_train_data(train, targets, rows, T_COLS, NUM_FILES):
+def process_train_data(trainX, targets, rows, T_COLS, NUM_FILES):
     # CREATE PROCESSED TRAIN FILES AND SAVE TO DISK
     for k in range(NUM_FILES):
 
         # READ CHUNK OF TRAIN CSV FILE
-        skip = int(np.sum(rows[:k]) + 1)  # the plus one is for skipping header
-        train = pd.read_csv(TRAIN_DATA_CSV, nrows=rows[k],
-                            skiprows=skip, header=None, names=T_COLS)
+        skip = int(np.sum(rows[:k]))
+        if 'feather' in TRAIN_DATA_PATH or 'parquet' in TRAIN_DATA_PATH:
+            # print("skip: ", skip)
+            # print("rows[k]: ", rows[k])
+            train = trainX.loc[skip:skip+rows[k]-1]
+        else:
+            train = pd.read_csv(TRAIN_DATA_PATH, nrows=rows[k],
+                                skiprows=skip, header=None, names=T_COLS)
 
         # FEATURE ENGINEER DATAFRAME
+        # return 1/k train data
         train = feature_engineer(train, targets=targets)
+        print("train shape: ", train.shape)
 
         # SAVE FILES
         print(f'Train_File_{k + 1} has {train.customer_ID.nunique()} customers and shape', train.shape)
         tar = train[['customer_ID', 'target']].drop_duplicates().sort_index()
+        # tar.info()
         if not os.path.exists(PATH_TO_DATA): os.makedirs(PATH_TO_DATA)
-        tar.to_parquet(f'{PATH_TO_DATA}targets_{k + 1}.pqt', index=False)
-        data = train.iloc[:, 1:-1].values.reshape((-1, 13, 188))
-        pd.save(f'{PATH_TO_DATA}data_{k + 1}', data.astype('float32'))
+        tar.to_parquet(f'{PATH_TO_DATA}trans_targets_{k + 1}.pqt', index=False)
+
+        data = train.iloc[:, 1:-2].values.reshape((-1, 13, 188))
+        print(data[0:5])
+        np.save(f'{PATH_TO_DATA}trans_data_{k + 1}', data.astype('float32'))
 
     # CLEAN MEMORY
     del train, tar, data
@@ -58,7 +75,13 @@ def process_train_data(train, targets, rows, T_COLS, NUM_FILES):
 
 
 def read_test_data():
-    test = pd.read_csv(TEST_DATA_CSV, nrows=1)
+    if 'feather' in TEST_DATA_PATH:
+        test = pd.read_feather(TEST_DATA_PATH)
+    elif 'parquet' in TEST_DATA_PATH:
+        test = pd.read_parquet(TEST_DATA_PATH)
+    else:
+        test = pd.read_csv(TEST_DATA_PATH, nrows=1)
+
     T_COLS = test.columns
     print(f'There are {len(T_COLS)} test dataframe columns')
 
@@ -68,6 +91,7 @@ def read_test_data():
     else:
         test = pd.read_csv('/raid/Kaggle/amex/test_data.csv', usecols=['customer_ID'])
         test['customer_ID'] = test['customer_ID'].apply(lambda x: int(x[-16:], 16)).astype('int64')
+
     customers = test.drop_duplicates().sort_index().values.flatten()
     print(f'There are {len(customers)} unique customers in test.')
 
@@ -81,7 +105,7 @@ def process_test_data(rows, T_COLS, NUM_FILES):
     for k in range(NUM_FILES):
         # READ CHUNK OF TEST CSV FILE
         skip = int(np.sum(rows[:k]) + 1)  # the plus one is for skipping header
-        test = pd.read_csv(TEST_DATA_CSV, nrows=rows[k],
+        test = pd.read_csv(TEST_DATA_PATH, nrows=rows[k],
                            skiprows=skip, header=None, names=T_COLS)
 
         # FEATURE ENGINEER DATAFRAME

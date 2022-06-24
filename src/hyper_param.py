@@ -1,15 +1,17 @@
 #
 TRAIN_LABELS_CSV = '../input/amex-default-prediction/train_labels.csv'
-# TRAIN_DATA_CSV = '../input/amex-default-prediction/train_data.csv'
-# TEST_DATA_CSV = '../input/amex-default-prediction/test_data.csv'
-TRAIN_DATA_CSV = '../input/amex_data_feather/train.feather'
-TEST_DATA_CSV = '../input/amex_data_feather/test.feather'
-
+# TRAIN_DATA_PATH = '../input/amex-default-prediction/train_data.csv'
+# TEST_DATA_PATH = '../input/amex-default-prediction/test_data.csv'
+# TRAIN_DATA_PATH = '../input/amex_data_feather/train.feather'
+# TEST_DATA_PATH = '../input/amex_data_feather/test.feather'
+TRAIN_DATA_PATH = '../input/parquetData/train.parquet'
+TEST_DATA_PATH = '../input/parquetData/test.parquet'
 #
 PATH_TO_CUSTOMER_HASHES = '../input/amex-data-files/'
 
 #
-PROCESS_DATA = True
+PROCESS_TRAIN_DATA = True
+PROCESS_TEST_DATA = False
 PATH_TO_DATA = '../input/data3d/'
 
 #
