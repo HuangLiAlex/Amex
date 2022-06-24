@@ -64,8 +64,8 @@ def process_train_data(trainX, targets, rows, T_COLS, NUM_FILES):
         if not os.path.exists(PATH_TO_DATA): os.makedirs(PATH_TO_DATA)
         tar.to_parquet(f'{PATH_TO_DATA}trans_targets_{k + 1}.pqt', index=False)
 
-        data = train.iloc[:, 1:-2].values.reshape((-1, 13, 188))
-        print(data[0:5])
+        data = train.iloc[:, 1:-1].values.reshape((-1, 13, 189))
+        # print(data[0:5])
         np.save(f'{PATH_TO_DATA}trans_data_{k + 1}', data.astype('float32'))
 
     # CLEAN MEMORY
@@ -82,30 +82,35 @@ def read_test_data():
     else:
         test = pd.read_csv(TEST_DATA_PATH, nrows=1)
 
+    test['customer_ID'] = test['customer_ID'].apply(lambda x: int(x[-16:], 16)).astype('int64')
+
     T_COLS = test.columns
     print(f'There are {len(T_COLS)} test dataframe columns')
 
     # GET TEST CUSTOMER NAMES (use pandas to avoid memory error)
     if PATH_TO_CUSTOMER_HASHES:
-        test = pd.read_parquet(f'{PATH_TO_CUSTOMER_HASHES}test_customer_hashes.pqt')
+        test_ID = pd.read_parquet(f'{PATH_TO_CUSTOMER_HASHES}test_customer_hashes.pqt')
     else:
-        test = pd.read_csv('/raid/Kaggle/amex/test_data.csv', usecols=['customer_ID'])
-        test['customer_ID'] = test['customer_ID'].apply(lambda x: int(x[-16:], 16)).astype('int64')
+        test_ID = pd.read_csv('/raid/Kaggle/amex/test_data.csv', usecols=['customer_ID'])
+        test['customer_ID'] = test_ID['customer_ID'].apply(lambda x: int(x[-16:], 16)).astype('int64')
 
-    customers = test.drop_duplicates().sort_index().values.flatten()
+    customers = test_ID.drop_duplicates().sort_index().values.flatten()
     print(f'There are {len(customers)} unique customers in test.')
 
-    return test, customers, T_COLS
+    return test, test_ID, customers, T_COLS
 
 
-def process_test_data(rows, T_COLS, NUM_FILES):
+def process_test_data(testX, rows, T_COLS, NUM_FILES):
     # SAVE TEST CUSTOMERS INDEX
     test_customer_hashes = np.array([], dtype='int64')
     # CREATE PROCESSED TEST FILES AND SAVE TO DISK
     for k in range(NUM_FILES):
         # READ CHUNK OF TEST CSV FILE
-        skip = int(np.sum(rows[:k]) + 1)  # the plus one is for skipping header
-        test = pd.read_csv(TEST_DATA_PATH, nrows=rows[k],
+        skip = int(np.sum(rows[:k]))  # the plus one is for skipping header
+        if 'feather' in TRAIN_DATA_PATH or 'parquet' in TRAIN_DATA_PATH:
+            test = testX.loc[skip:skip+rows[k]-1]
+        else:
+            test = pd.read_csv(TEST_DATA_PATH, nrows=rows[k],
                            skiprows=skip, header=None, names=T_COLS)
 
         # FEATURE ENGINEER DATAFRAME
@@ -117,11 +122,11 @@ def process_test_data(rows, T_COLS, NUM_FILES):
 
         # SAVE FILES
         print(f'Test_File_{k + 1} has {test.customer_ID.nunique()} customers and shape', test.shape)
-        data = test.iloc[:, 1:].values.reshape((-1, 13, 188))
-        pd.save(f'{PATH_TO_DATA}test_data_{k + 1}', data.astype('float32'))
+        data = test.iloc[:, 1:].values.reshape((-1, 13, 189))
+        np.save(f'{PATH_TO_DATA}trans_test_data_{k + 1}', data.astype('float32'))
 
     # SAVE CUSTOMER INDEX OF ALL TEST FILES
-    pd.save(f'{PATH_TO_DATA}test_hashes_data', test_customer_hashes)
+    np.save(f'{PATH_TO_DATA}test_hashes_data', test_customer_hashes)
 
     # CLEAN MEMORY
     del test, data

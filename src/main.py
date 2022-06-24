@@ -29,9 +29,9 @@ else:
 
 if PROCESS_TEST_DATA:
     print('Start to process test data')
-    test, customers, T_COLS = read_test_data()
+    test, test_ID, customers, T_COLS = read_test_data()
     NUM_FILES = 20
-    rows = get_rows(customers, test, NUM_FILES=NUM_FILES, verbose='test')
+    rows = get_rows(customers, test_ID, NUM_FILES=NUM_FILES, verbose='test')
     process_test_data(test, rows, T_COLS, NUM_FILES)
 else:
     print('Skipped process test data')
