@@ -28,13 +28,13 @@ def read_train_data():
     targets['customer_ID'] = targets['customer_ID'].apply(lambda x: int(x[-16:], 16)).astype('int64')
     print(f'There are {targets.shape[0]} train targets')
 
-    # GET TRAIN COLUMN NAMES
+    # Read data
     if 'feather' in TRAIN_DATA_PATH:
         train = pd.read_feather(TRAIN_DATA_PATH)
     elif 'parquet' in TRAIN_DATA_PATH:
         train = pd.read_parquet(TRAIN_DATA_PATH)
     else:
-        train = pd.read_csv(TRAIN_DATA_PATH, nrows=1)
+        train = pd.read_csv(TRAIN_DATA_PATH)
 
     # Convert customer ID to int64
     train_ID = pd.DataFrame()
@@ -63,28 +63,28 @@ def read_train_data():
 
 
 def read_test_data():
+    # Read Data
     if 'feather' in TEST_DATA_PATH:
         test = pd.read_feather(TEST_DATA_PATH)
     elif 'parquet' in TEST_DATA_PATH:
         test = pd.read_parquet(TEST_DATA_PATH)
     else:
-        test = pd.read_csv(TEST_DATA_PATH, nrows=1)
+        test = pd.read_csv(TEST_DATA_PATH)
 
+    # Convert customer ID to int64
     test['customer_ID'] = test['customer_ID'].apply(lambda x: int(x[-16:], 16)).astype('int64')
 
+    # Print column number
     T_COLS = test.columns
     print(f'There are {len(T_COLS)} test dataframe columns')
 
     # GET TEST CUSTOMER NAMES (use pandas to avoid memory error)
-    if PATH_TO_CUSTOMER_HASHES:
-        test_ID = pd.read_parquet(f'{PATH_TO_CUSTOMER_HASHES}test_customer_hashes.pqt')
-    else:
-        test_ID = pd.read_csv('/raid/Kaggle/amex/test_data.csv', usecols=['customer_ID'])
-        test['customer_ID'] = test_ID['customer_ID'].apply(lambda x: int(x[-16:], 16)).astype('int64')
+    test_ID = pd.read_parquet(f'{PATH_TO_CUSTOMER_HASHES}test_customer_hashes.pqt')
 
     customers = test_ID.drop_duplicates().sort_index().values.flatten()
     print(f'There are {len(customers)} unique customers in test.')
 
+    # Calc number of rows for each file
     NUM_FILES = 20
     rows = get_rows(customers, test_ID, NUM_FILES=NUM_FILES, verbose='test')
 

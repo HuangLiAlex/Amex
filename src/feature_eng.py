@@ -16,6 +16,7 @@ def feature_engineer(train, PAD_CUSTOMER_TO_13_ROWS=True, targets=None):
     max_date = train.S_2.max() - min_date
     train.S_2 = (train.S_2-min_date)/max_date
 
+    # Add noise removal from @Raddar
     remove_noise(train)
 
     # LABEL ENCODE CAT COLUMNS (and reduce to 1 byte)
@@ -89,7 +90,7 @@ def feature_engineer(train, PAD_CUSTOMER_TO_13_ROWS=True, targets=None):
     # print("isnull(): \n", train.isnull())
     # print("isnull().sum(): \n", train.isnull().sum())
     # print("isnull().any(): \n", train.isnull().any())
-    # print(train)
+    print(train.columns)
 
     return train
 

@@ -20,11 +20,13 @@ def infer_test():
     for k in range(NUM_FILES):
         # LOAD TEST DATA
         print(f'Inferring Test_File_{k + 1}')
-        X_test = np.load(f'{PATH_TO_DATA}test_data_{k + 1}.npy')
+        X_test = np.load(f'{PATH_TO_DATA}trans_test_data_{k + 1}.npy')
         end = start + X_test.shape[0]
 
         # BUILD MODEL
         model = eval(params['model'])(X_test.shape[-1]).to(device)
+        for x in model.parameters():
+            print(x.size())
 
         # INFER 5 FOLD MODELS
         model.load_state_dict(torch.load(f'{PATH_TO_MODEL}gru_fold_1.h5'))

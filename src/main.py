@@ -56,10 +56,10 @@ else:
 INFER_TEST = False
 if INFER_TEST:
     print('Start to infer test data')
-#     submit = infer_test()
-#
-#     print('Start to save result')
-#     save_sub_csv(submit)
-#     # plot_predict(submit)
+    submit = infer_test()
+
+    print('Start to save result')
+    save_sub_csv(submit)
+    # plot_predict(submit)
 else:
     print('Skipped infer test data')

@@ -36,7 +36,6 @@ def train_model_GRU():
             X_train.append(np.load(f'{PATH_TO_DATA}trans_data_{k}.npy'))
             y_train.append(pd.read_parquet(f'{PATH_TO_DATA}trans_targets_{k}.pqt'))
         X_train = np.concatenate(X_train, axis=0)
-        X_train = np.delete(X_train, -1, axis=2)
         y_train = pd.concat(y_train).target.values
         print('### Training data shapes', X_train.shape, y_train.shape)
 
@@ -47,7 +46,6 @@ def train_model_GRU():
             X_valid.append(np.load(f'{PATH_TO_DATA}trans_data_{k}.npy'))
             y_valid.append(pd.read_parquet(f'{PATH_TO_DATA}trans_targets_{k}.pqt'))
         X_valid = np.concatenate(X_valid, axis=0)
-        X_valid = np.delete(X_valid, -1, axis=2)
         y_valid = pd.concat(y_valid).target.values
         print('### Validation data shapes', X_valid.shape, y_valid.shape)
         print('#' * 25)
@@ -149,7 +147,7 @@ def train_model_GRU():
                 break
         print("Best val_metric is: {:.7f}".format(earlystoper.best_cv))
         if not os.path.exists(PATH_TO_MODEL): os.makedirs(PATH_TO_MODEL)
-        torch.save(earlystoper.best_model.to('cpu').state_dict(), f'{PATH_TO_MODEL}gru_fold_{fold + 1}.h5')
+        torch.save(earlystoper.best_model.to('cpu').state_dict(), f'{PATH_TO_MODEL}trans_gru_fold_{fold + 1}.h5')
 
         # INFER VALID DATA
         print('Inferring validation data...')
@@ -158,7 +156,7 @@ def train_model_GRU():
         val_acc_list = 0
         # val_correct_list = 0
         val_all_list = 0
-        model.load_state_dict(torch.load(f'{PATH_TO_MODEL}gru_fold_{fold + 1}.h5'))
+        model.load_state_dict(torch.load(f'{PATH_TO_MODEL}trans_gru_fold_{fold + 1}.h5'))
         model.eval()
         with torch.no_grad():
             for step, input_seeds in enumerate(val_dataloader):
