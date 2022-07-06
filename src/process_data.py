@@ -2,40 +2,7 @@
 import os, gc
 import numpy as np, pandas as pd  # CPU LIBRARIES
 from src.feature_eng import feature_engineer
-from src.hyper_param import PATH_TO_CUSTOMER_HASHES, PATH_TO_DATA, TRAIN_LABELS_CSV, TRAIN_DATA_PATH, TEST_DATA_PATH
-
-
-def read_train_data():
-    # LOAD TARGETS
-    targets = pd.read_csv(TRAIN_LABELS_CSV)
-    # targets['customer_ID'] = targets['customer_ID'].str[-16:].astype('int64')
-    # pandas way
-    targets['customer_ID'] = targets['customer_ID'].apply(lambda x: int(x[-16:], 16)).astype('int64')
-    print(f'There are {targets.shape[0]} train targets')
-
-    # GET TRAIN COLUMN NAMES
-    if 'feather' in TRAIN_DATA_PATH:
-        train = pd.read_feather(TRAIN_DATA_PATH)
-    elif 'parquet' in TRAIN_DATA_PATH:
-        train = pd.read_parquet(TRAIN_DATA_PATH)
-    else:
-        train = pd.read_csv(TRAIN_DATA_PATH, nrows=1)
-
-    train_ID = pd.DataFrame()
-    train['customer_ID'] = train['customer_ID'].apply(lambda x: int(x[-16:], 16)).astype('int64')
-    train_ID['customer_ID'] = train['customer_ID']
-    # train_ID.info()
-
-    T_COLS = train.columns
-    print(f'There are {len(T_COLS)} train dataframe columns')
-
-    # GET TRAIN CUSTOMER NAMES (use pandas to avoid memory error)
-    train_customers = pd.read_parquet(f'{PATH_TO_CUSTOMER_HASHES}train_customer_hashes.pqt')
-
-    customers = train_customers.drop_duplicates().sort_index().values.flatten()
-    print(f'There are {len(customers)} unique customers in train.')
-
-    return train, train_ID, targets, customers, T_COLS
+from src.hyper_param import PATH_TO_DATA, TRAIN_DATA_PATH, TEST_DATA_PATH
 
 
 def process_train_data(trainX, targets, rows, T_COLS, NUM_FILES):
@@ -72,32 +39,6 @@ def process_train_data(trainX, targets, rows, T_COLS, NUM_FILES):
     del train, tar, data
     del targets
     gc.collect()
-
-
-def read_test_data():
-    if 'feather' in TEST_DATA_PATH:
-        test = pd.read_feather(TEST_DATA_PATH)
-    elif 'parquet' in TEST_DATA_PATH:
-        test = pd.read_parquet(TEST_DATA_PATH)
-    else:
-        test = pd.read_csv(TEST_DATA_PATH, nrows=1)
-
-    test['customer_ID'] = test['customer_ID'].apply(lambda x: int(x[-16:], 16)).astype('int64')
-
-    T_COLS = test.columns
-    print(f'There are {len(T_COLS)} test dataframe columns')
-
-    # GET TEST CUSTOMER NAMES (use pandas to avoid memory error)
-    if PATH_TO_CUSTOMER_HASHES:
-        test_ID = pd.read_parquet(f'{PATH_TO_CUSTOMER_HASHES}test_customer_hashes.pqt')
-    else:
-        test_ID = pd.read_csv('/raid/Kaggle/amex/test_data.csv', usecols=['customer_ID'])
-        test['customer_ID'] = test_ID['customer_ID'].apply(lambda x: int(x[-16:], 16)).astype('int64')
-
-    customers = test_ID.drop_duplicates().sort_index().values.flatten()
-    print(f'There are {len(customers)} unique customers in test.')
-
-    return test, test_ID, customers, T_COLS
 
 
 def process_test_data(testX, rows, T_COLS, NUM_FILES):

@@ -30,22 +30,24 @@ def train_model_GRU():
         print(f'### Fold {fold + 1} with valid files', valid_idx)
 
         # READ TRAIN DATA FROM DISK
-        X_train = [];
+        X_train = []
         y_train = []
         for k in train_idx:
-            X_train.append(np.load(f'{PATH_TO_DATA}data_{k}.npy'))
-            y_train.append(pd.read_parquet(f'{PATH_TO_DATA}targets_{k}.pqt'))
+            X_train.append(np.load(f'{PATH_TO_DATA}trans_data_{k}.npy'))
+            y_train.append(pd.read_parquet(f'{PATH_TO_DATA}trans_targets_{k}.pqt'))
         X_train = np.concatenate(X_train, axis=0)
+        X_train = np.delete(X_train, -1, axis=2)
         y_train = pd.concat(y_train).target.values
         print('### Training data shapes', X_train.shape, y_train.shape)
 
         # READ VALID DATA FROM DISK
-        X_valid = [];
+        X_valid = []
         y_valid = []
         for k in valid_idx:
-            X_valid.append(np.load(f'{PATH_TO_DATA}data_{k}.npy'))
-            y_valid.append(pd.read_parquet(f'{PATH_TO_DATA}targets_{k}.pqt'))
+            X_valid.append(np.load(f'{PATH_TO_DATA}trans_data_{k}.npy'))
+            y_valid.append(pd.read_parquet(f'{PATH_TO_DATA}trans_targets_{k}.pqt'))
         X_valid = np.concatenate(X_valid, axis=0)
+        X_valid = np.delete(X_valid, -1, axis=2)
         y_valid = pd.concat(y_valid).target.values
         print('### Validation data shapes', X_valid.shape, y_valid.shape)
         print('#' * 25)

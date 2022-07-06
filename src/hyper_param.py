@@ -2,25 +2,25 @@
 TRAIN_LABELS_CSV = '../input/amex-default-prediction/train_labels.csv'
 # TRAIN_DATA_PATH = '../input/amex-default-prediction/train_data.csv'
 # TEST_DATA_PATH = '../input/amex-default-prediction/test_data.csv'
-# TRAIN_DATA_PATH = '../input/amex_data_feather/train.feather'
-# TEST_DATA_PATH = '../input/amex_data_feather/test.feather'
-TRAIN_DATA_PATH = '../input/parquetData/train.parquet'
-TEST_DATA_PATH = '../input/parquetData/test.parquet'
+TRAIN_DATA_PATH = '../input/amex_data_feather/train.feather'
+TEST_DATA_PATH = '../input/amex_data_feather/test.feather'
+# TRAIN_DATA_PATH = '../input/radar/train.parquet'
+# TEST_DATA_PATH = '../input/radar/test.parquet'
 #
 PATH_TO_CUSTOMER_HASHES = '../input/amex-data-files/'
 
 #
-PROCESS_TRAIN_DATA = True
-PROCESS_TEST_DATA = False
+
+
 PATH_TO_DATA = '../input/data3d/'
 
 #
-TRAIN_MODEL = False
+
 PATH_TO_MODEL = '../saved_model/'
 # PATH_TO_MODEL = '../input/amex-data-for-transformers-and-rnns/model/'
 
 
-INFER_TEST = False
+
 OUTPUT_SAMPLE_CSV = '../output/sample_submission.csv'
 OUTPUT_CSV = '../output/submission.csv'
 
