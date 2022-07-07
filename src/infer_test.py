@@ -29,7 +29,7 @@ def infer_test():
             print(x.size())
 
         # INFER 5 FOLD MODELS
-        model.load_state_dict(torch.load(f'{PATH_TO_MODEL}gru_fold_1.h5'))
+        model.load_state_dict(torch.load(f'{PATH_TO_MODEL}trans_gru_fold_1.h5'))
         test_predictions = torch.zeros(X_test.shape[0], 2).to(device).float()
         test_sample_strategy = torch.utils.data.sampler.WeightedRandomSampler(np.ones(X_test.shape[0]),
                                                                               num_samples=X_test.shape[0],
@@ -39,7 +39,7 @@ def infer_test():
                                                       sampler=test_sample_strategy, drop_last=False)
 
         for j in range(1, 5):
-            model.load_state_dict(torch.load(f'{PATH_TO_MODEL}gru_fold_{j + 1}.h5'))
+            model.load_state_dict(torch.load(f'{PATH_TO_MODEL}trans_gru_fold_{j + 1}.h5'))
             with torch.no_grad():
                 for step, input_seeds in enumerate(test_dataloader):
                     input_seeds = input_seeds.type(torch.long)

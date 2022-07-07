@@ -34,6 +34,6 @@ params = {
     'early_stopping': 4,
     'n_fold': 5,
     'seed': 2021,
-    'max_epochs': 30,
+    'max_epochs': 20,
 }
 

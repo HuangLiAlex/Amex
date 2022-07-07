@@ -1,11 +1,14 @@
 # import cupy, cudf  # GPU LIBRARIES
 import os, gc
 import numpy as np, pandas as pd  # CPU LIBRARIES
-from src.feature_eng import feature_engineer
+from src.feature_eng import feature_engineer, preprocess
 from src.hyper_param import PATH_TO_DATA, TRAIN_DATA_PATH, TEST_DATA_PATH
 
 
 def process_train_data(trainX, targets, rows, T_COLS, NUM_FILES):
+    # preprocess before norm
+    preprocess(trainX)
+
     # CREATE PROCESSED TRAIN FILES AND SAVE TO DISK
     for k in range(NUM_FILES):
 
@@ -31,7 +34,7 @@ def process_train_data(trainX, targets, rows, T_COLS, NUM_FILES):
         if not os.path.exists(PATH_TO_DATA): os.makedirs(PATH_TO_DATA)
         tar.to_parquet(f'{PATH_TO_DATA}trans_targets_{k + 1}.pqt', index=False)
 
-        data = train.iloc[:, 1:-1].values.reshape((-1, 13, 189))
+        data = train.iloc[:, 1:-1].values.reshape((-1, 13, 188))
         # print(data[0:5])
         np.save(f'{PATH_TO_DATA}trans_data_{k + 1}', data.astype('float32'))
 
@@ -63,7 +66,7 @@ def process_test_data(testX, rows, T_COLS, NUM_FILES):
 
         # SAVE FILES
         print(f'Test_File_{k + 1} has {test.customer_ID.nunique()} customers and shape', test.shape)
-        data = test.iloc[:, 1:].values.reshape((-1, 13, 189))
+        data = test.iloc[:, 1:].values.reshape((-1, 13, 188))
         np.save(f'{PATH_TO_DATA}trans_test_data_{k + 1}', data.astype('float32'))
 
     # SAVE CUSTOMER INDEX OF ALL TEST FILES
